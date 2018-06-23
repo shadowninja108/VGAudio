@@ -4,6 +4,7 @@
     {
         Revolution,
         Ctr,
-        Cafe
+        Cafe,
+        NX
     }
 }

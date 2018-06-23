@@ -54,10 +54,10 @@ namespace VGAudio.Containers.NintendoWare
 
         private static int HeaderSize => 0x40;
 
-        private NwVersion Version => Configuration.Version ??
-                                     (Type == NwTarget.Ctr ? DefaultBcstmVersion : DefaultBfstmVersion);
+        private NwVersion Version => Configuration.Version ?? GetNwVersion(Type);
         private static NwVersion DefaultBcstmVersion { get; } = new NwVersion(2, 1);
-        private static NwVersion DefaultBfstmVersion { get; } = new NwVersion(0, 3);
+        private static NwVersion DefaultCtrVersion { get; } = new NwVersion(0, 3);
+        private static NwVersion DefaultNXVersion { get; } = new NwVersion(0, 1);
         private bool IncludeRegionInfo => IncludeRegionInfo(Version);
         private bool IncludeUnalignedLoopPoints => IncludeUnalignedLoop(Version);
         private bool IncludeTrackInformation => IncludeTrackInfo(Version);
@@ -146,7 +146,7 @@ namespace VGAudio.Containers.NintendoWare
 
         private int GetVersion(NwTarget type)
         {
-            if (type == NwTarget.Cafe)
+            if (type == NwTarget.Cafe || type == NwTarget.NX)
             {
                 return IncludeUnalignedLoopPoints ? 4 : 3;
             }
@@ -366,7 +366,30 @@ namespace VGAudio.Containers.NintendoWare
             channels.Interleave(writer.BaseStream, InterleaveSize, AudioDataSize);
         }
 
-        private static Endianness GetTypeEndianness(NwTarget type) =>
-            type == NwTarget.Ctr ? Endianness.LittleEndian : Endianness.BigEndian;
+        private static Endianness GetTypeEndianness(NwTarget type) {
+            switch (type)
+            {
+                case NwTarget.NX:
+                case NwTarget.Ctr:
+                    return Endianness.LittleEndian;
+                default:
+                    return Endianness.BigEndian;
+            }
+        }
+
+        private static NwVersion GetNwVersion(NwTarget type)
+        {
+            switch (type)
+            {
+                case NwTarget.Ctr:
+                    return DefaultCtrVersion;
+                case NwTarget.NX:
+                    return DefaultNXVersion;
+                case NwTarget.Cafe:
+                    return DefaultBcstmVersion;
+                default:
+                    return DefaultNXVersion; // idk
+            }
+        }
     }
 }
